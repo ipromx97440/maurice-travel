@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <style>
 :root{--ocean:#0a4d6e;--lagoon:#00b4d8;--gold:#f9c74f;--coral:#ff6b6b;--dark:#0d1117;--card:#161f2c;--card2:#1e2d3d;--cream:#f0f4f8;--border:rgba(255,255,255,0.08);--green:#4ade80;--orange:#fb923c;--red:#f87171;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -20,7 +20,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 .nav-tabs{display:flex;gap:4px;flex:1;}
 .nav-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 10px;border-radius:10px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .nav-tab.active{background:var(--card2);color:#fff;border:1px solid var(--border);}
-.nav-tab-icon{font-size:16px;}
 .page{position:fixed;inset:0;padding-top:56px;overflow-y:auto;display:none;}
 .page.active{display:block;}
 .hero{position:relative;height:100svh;min-height:550px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;overflow:hidden;}
@@ -67,8 +66,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 .detail-hero{position:relative;height:300px;overflow:hidden;background:#0a1520;}
 .detail-photos{display:flex;height:100%;gap:3px;}
 .detail-main-photo{flex:2;overflow:hidden;cursor:pointer;}
-.detail-main-photo img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
-.detail-main-photo:hover img{transform:scale(1.04);}
+.detail-main-photo img{width:100%;height:100%;object-fit:cover;}
 .detail-side-photos{flex:1;display:flex;flex-direction:column;gap:3px;}
 .detail-side-photo{flex:1;overflow:hidden;cursor:pointer;position:relative;}
 .detail-side-photo img{width:100%;height:100%;object-fit:cover;}
@@ -130,6 +128,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 #lightbox.open{display:flex;}
 #lightbox img{max-width:95vw;max-height:90svh;object-fit:contain;border-radius:8px;}
 #lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* ══ SCAN ══ */
 #page-scan{background:var(--dark);}
 .scan-header{padding:24px 20px 0;background:linear-gradient(135deg,#0d1117,#161f2c);}
 .scan-header-title{font-family:'Playfair Display',serif;font-size:28px;color:#fff;margin-bottom:4px;}
@@ -139,28 +138,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 .scan-tabs{display:flex;border-bottom:1px solid var(--border);}
 .scan-tab{flex:1;padding:14px;text-align:center;font-size:13px;font-weight:500;color:rgba(255,255,255,.4);cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'DM Sans',sans-serif;}
 .scan-tab.active{color:var(--green);border-bottom:2px solid var(--green);}
-#scan-camera-view{display:none;padding:20px;}
+#scan-camera-view{display:none;padding:16px;}
 #scan-camera-view.active{display:block;}
-.camera-container{position:relative;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;}
-#video-elem{width:100%;height:100%;object-fit:cover;display:block;}
-.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.scan-frame{width:220px;height:120px;border:2px solid var(--green);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);position:relative;}
-.scan-frame::before,.scan-frame::after{content:'';position:absolute;width:20px;height:20px;border-color:var(--green);border-style:solid;}
-.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
-.scan-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+
+/* Quagga viewport */
+#quagga-container{position:relative;border-radius:16px;overflow:hidden;background:#000;width:100%;aspect-ratio:4/3;}
+#quagga-container video{width:100%;height:100%;object-fit:cover;display:block;}
+#quagga-container canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.scan-frame-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.scan-rect{width:75%;height:35%;border:2px solid var(--green);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);position:relative;}
+.scan-rect::before,.scan-rect::after{content:'';position:absolute;width:22px;height:22px;border-color:var(--green);border-style:solid;}
+.scan-rect::before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.scan-rect::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
 .scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scanMove 2s ease-in-out infinite;}
-@keyframes scanMove{0%,100%{top:10%}50%{top:85%}}
-.btn-start-cam{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--green),#16a34a);color:#0d1117;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:14px;transition:transform .15s;}
+@keyframes scanMove{0%,100%{top:5%}50%{top:88%}}
+.cam-status{text-align:center;margin-top:12px;font-size:12px;color:rgba(255,255,255,.5);min-height:20px;}
+.cam-status.ok{color:var(--green);}
+.cam-status.err{color:var(--coral);}
+.btn-start-cam{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--green),#16a34a);color:#0d1117;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;transition:transform .15s;}
+.btn-start-cam.stop{background:linear-gradient(135deg,var(--coral),#dc2626);}
 .btn-start-cam:active{transform:scale(.97);}
-.cam-hint{font-size:11px;color:rgba(255,255,255,.35);text-align:center;margin-top:10px;}
-#scan-photo-view{display:none;padding:20px;}
-#scan-photo-view.active{display:block;}
-.upload-zone{border:2px dashed rgba(255,255,255,.15);border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;}
-.upload-zone:hover{border-color:var(--green);}
-.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
-.upload-icon{font-size:48px;margin-bottom:12px;}
-.upload-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:6px;}
-.upload-sub{font-size:12px;color:rgba(255,255,255,.35);}
+
 #scan-search-view{display:none;padding:20px;}
 #scan-search-view.active{display:block;}
 .search-input-wrap{position:relative;}
@@ -197,11 +195,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 .nutri-bar{display:flex;gap:3px;margin-bottom:16px;}
 .nutri-letter{flex:1;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;opacity:.3;transition:opacity .3s;}
 .nutri-letter.active{opacity:1;}
-.nl-a{background:#1a9c3e;color:#fff;}
-.nl-b{background:#8bc34a;color:#fff;}
-.nl-c{background:#f9c74f;color:#000;}
-.nl-d{background:#fb923c;color:#fff;}
-.nl-e{background:#ef4444;color:#fff;}
+.nl-a{background:#1a9c3e;color:#fff;}.nl-b{background:#8bc34a;color:#fff;}.nl-c{background:#f9c74f;color:#000;}.nl-d{background:#fb923c;color:#fff;}.nl-e{background:#ef4444;color:#fff;}
 .nutrients-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 .nutrient-item{background:var(--card2);border-radius:12px;padding:12px 14px;}
 .nutrient-name{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;}
@@ -209,18 +203,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 .nutrient-unit{font-size:10px;color:rgba(255,255,255,.35);margin-left:2px;}
 .nutrient-bar-wrap{margin-top:6px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;}
 .nutrient-bar-fill{height:100%;border-radius:2px;transition:width .5s;}
-.fill-green{background:var(--green);}
-.fill-yellow{background:#fbbf24;}
-.fill-red{background:var(--red);}
+.fill-green{background:var(--green);}.fill-yellow{background:#fbbf24;}.fill-red{background:var(--red);}
 .ingredients-section{padding:18px 20px;border-bottom:1px solid var(--border);}
 .ingredients-text{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;}
 .additives-section{padding:18px 20px;border-bottom:1px solid var(--border);}
 .additives-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
 .additive-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:10px;}
 .add-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.add-green{background:var(--green);}
-.add-yellow{background:#fbbf24;}
-.add-red{background:var(--red);}
+.add-green{background:var(--green);}.add-yellow{background:#fbbf24;}.add-red{background:var(--red);}
 .add-name{font-size:13px;font-weight:500;color:#fff;}
 .add-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px;}
 .eco-section{padding:18px 20px;border-bottom:1px solid var(--border);}
@@ -246,7 +236,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 .history-list{display:flex;flex-direction:column;gap:10px;}
 .history-item{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:border-color .2s;}
 .history-item:hover{border-color:var(--green);}
-.history-img{width:48px;height:48px;border-radius:10px;object-fit:contain;background:var(--card2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.history-img{width:48px;height:48px;border-radius:10px;background:var(--card2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;}
 .history-info{flex:1;min-width:0;}
 .history-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .history-brand{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;}
@@ -258,10 +248,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 <nav class="app-nav">
   <div class="nav-logo">My<em>App</em></div>
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchPage('maurice',this)"><span class="nav-tab-icon">🌴</span> Maurice</button>
-    <button class="nav-tab" onclick="switchPage('scan',this)"><span class="nav-tab-icon">🔍</span> ScanFood</button>
+    <button class="nav-tab active" onclick="switchPage('maurice',this)"><span>🌴</span> Maurice</button>
+    <button class="nav-tab" onclick="switchPage('scan',this)"><span>🔍</span> ScanFood</button>
   </div>
 </nav>
+
+<!-- PAGE MAURICE -->
 <div class="page active" id="page-maurice">
   <section class="hero">
     <div class="hero-bg"></div><div class="hero-overlay"></div>
@@ -280,7 +272,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
   <div class="m-main">
     <p class="sec-tag">🗺 Explorer</p>
     <h2 class="sec-title">Que faire ?</h2>
-    <div class="cats" id="cats">
+    <div class="cats">
       <button class="cat-btn active" onclick="filterCat('all',this)">🌍 Tout</button>
       <button class="cat-btn" onclick="filterCat('plage',this)">🏖️ Plages</button>
       <button class="cat-btn" onclick="filterCat('nature',this)">🌿 Nature</button>
@@ -295,6 +287,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
     <div class="grid" id="grid"></div>
   </div>
 </div>
+
+<!-- DETAIL -->
 <div id="detail-screen">
   <div class="detail-hero">
     <button class="detail-back" onclick="closeDetail()">←</button>
@@ -323,6 +317,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
     </div>
   </div>
 </div>
+
+<!-- GPS -->
 <div id="gps-screen">
   <div class="gps-head">
     <button class="back-btn" onclick="closeGPS()">←</button>
@@ -342,44 +338,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
     <div class="status-bar searching" id="status-bar">⏳ Recherche GPS...</div>
   </div>
 </div>
+
+<!-- LIGHTBOX -->
 <div id="lightbox" onclick="closeLightbox()">
   <button id="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
 </div>
+
+<!-- PAGE SCAN -->
 <div class="page" id="page-scan">
   <div class="scan-header">
     <h2 class="scan-header-title">Scan<em>Food</em></h2>
-    <p class="scan-header-sub">Analysez vos aliments comme Yuka — note, nutri-score, additifs</p>
+    <p class="scan-header-sub">Scanner automatique comme Yuka — bip + analyse instantanée</p>
   </div>
   <div class="scan-zone">
     <div class="scan-tabs">
-      <button class="scan-tab active" onclick="switchScanTab('camera',this)">📷 Caméra</button>
-      <button class="scan-tab" onclick="switchScanTab('photo',this)">🖼️ Photo</button>
+      <button class="scan-tab active" onclick="switchScanTab('camera',this)">📷 Scanner</button>
       <button class="scan-tab" onclick="switchScanTab('search',this)">🔍 Recherche</button>
     </div>
+    <!-- CAMERA -->
     <div id="scan-camera-view" class="active">
-      <div class="camera-container">
-        <video id="video-elem" autoplay playsinline muted></video>
-        <div class="scan-overlay"><div class="scan-frame"><div class="scan-line"></div></div></div>
+      <div id="quagga-container">
+        <div class="scan-frame-overlay">
+          <div class="scan-rect"><div class="scan-line"></div></div>
+        </div>
       </div>
-      <button class="btn-start-cam" id="btn-cam" onclick="startCamera()">📷 Activer la caméra</button>
-      <p class="cam-hint">Pointez vers le code-barres du produit</p>
+      <div class="cam-status" id="cam-status">Appuyez sur Activer pour scanner</div>
+      <button class="btn-start-cam" id="btn-cam" onclick="toggleCamera()">📷 Activer le scanner</button>
     </div>
-    <div id="scan-photo-view">
-      <div class="upload-zone">
-        <input type="file" accept="image/*" onchange="handlePhotoUpload(event)">
-        <div class="upload-icon">📸</div>
-        <div class="upload-title">Prendre une photo</div>
-        <div class="upload-sub">Photo du code-barres ou du produit</div>
-      </div>
-    </div>
+    <!-- SEARCH -->
     <div id="scan-search-view">
       <div class="search-input-wrap">
-        <input class="search-input" id="search-input" type="text" placeholder="Nom du produit ou code-barres..." onkeydown="if(event.key==='Enter')searchProduct()">
+        <input class="search-input" id="search-input" type="text" placeholder="Nom du produit..." onkeydown="if(event.key==='Enter')searchProduct()">
         <button class="btn-search" onclick="searchProduct()">→</button>
       </div>
       <div class="search-examples">
-        <div class="search-ex-title">Suggestions</div>
+        <div class="search-ex-title">Suggestions rapides</div>
         <div class="search-chips">
           <span class="search-chip" onclick="quickSearch('Nutella')">Nutella</span>
           <span class="search-chip" onclick="quickSearch('Coca-Cola')">Coca-Cola</span>
@@ -387,6 +381,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
           <span class="search-chip" onclick="quickSearch('Prince biscuit')">Prince</span>
           <span class="search-chip" onclick="quickSearch('Kinder')">Kinder</span>
           <span class="search-chip" onclick="quickSearch('Evian')">Evian</span>
+          <span class="search-chip" onclick="quickSearch('Lay chips')">Lay's</span>
+          <span class="search-chip" onclick="quickSearch('Oreo')">Oreo</span>
         </div>
       </div>
     </div>
@@ -394,81 +390,235 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
   <div class="scan-loading" id="scan-loading"><div class="loading-spinner"></div><div class="loading-text">Analyse en cours...</div></div>
   <div class="scan-error" id="scan-error"><div class="scan-error-icon">😕</div><div class="scan-error-text" id="scan-error-text">Produit introuvable.</div></div>
   <div id="scan-result"><div class="result-card" id="result-card"></div></div>
-  <div class="scan-history"><div class="history-title">Récemment analysés</div><div class="history-list" id="history-list"></div></div>
+  <div class="scan-history"><div class="history-title">Récemment scannés</div><div class="history-list" id="history-list"></div></div>
 </div>
+
 <script>
+/* ══ NAV ══ */
+function switchPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id!=='scan') stopCamera();
+}
+
+/* ══ MAURICE DATA ══ */
 const DATA=[
-  {id:1,cat:"plage",title:"Île aux Cerfs",rating:4.8,reviews:"12 450 avis",prix:"€€",dur:"Journée",ouvert:"6h-18h",tel:"+230 480 2222",photos:["https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80","https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80"],bdg:"Incontournable",desc:"L'île aux Cerfs est le joyau de l'île Maurice. Accessible en bateau, entourée d'un lagon turquoise d'une beauté époustouflante. Ski nautique, plongée en apnée, parasailing dans un cadre paradisiaque.",tags:["Plage","Snorkeling","Sports nautiques","Famille"],lat:-20.277,lng:57.795},
-  {id:2,cat:"plage",title:"Trou aux Biches",rating:4.7,reviews:"8 200 avis",prix:"Gratuit",dur:"Journée",ouvert:"Accès libre",tel:"",photos:["https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80","https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80"],bdg:"Eaux turquoise",desc:"Plage de rêve sur la côte nord. Eaux calmes transparentes, sable blanc immaculé, snorkeling exceptionnel avec coraux et poissons colorés accessibles depuis la plage.",tags:["Plage","Snorkeling","Famille","Gratuit"],lat:-20.026,lng:57.539},
-  {id:3,cat:"plage",title:"Flic en Flac",rating:4.6,reviews:"6 800 avis",prix:"Gratuit",dur:"Journée/Soirée",ouvert:"Accès libre",tel:"",photos:["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80","https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80","https://images.unsplash.com/photo-1480044965905-02098d419e96?w=800&q=80"],bdg:"Sunset magique",desc:"La plage la plus longue de la côte Ouest. Couchers de soleil légendaires aux teintes orangées et roses. Restaurants, bars, plongée dans des eaux riches en vie marine.",tags:["Plage","Coucher de soleil","Restaurants","Plongée"],lat:-20.293,lng:57.363},
-  {id:4,cat:"plage",title:"Blue Bay",rating:4.9,reviews:"9 100 avis",prix:"€",dur:"Demi-journée",ouvert:"8h-17h",tel:"+230 631 9000",photos:["https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80","https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80","https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80"],bdg:"Parc marin UNESCO",desc:"Parc marin protégé, l'un des plus beaux récifs de l'Océan Indien. Raies mantas, tortues marines, dauphins et plus de 50 espèces de coraux.",tags:["Snorkeling","Plongée","Tortues","Parc Marin"],lat:-20.456,lng:57.707},
-  {id:5,cat:"nature",title:"Chamarel — 7 Couleurs",rating:4.7,reviews:"5 400 avis",prix:"€",dur:"2h",ouvert:"8h30-17h30",tel:"+230 483 5159",photos:["https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80","https://images.unsplash.com/photo-1467890947394-8171244e5410?w=800&q=80","https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80"],bdg:"Unique au monde",desc:"Dunes de sable aux 7 couleurs naturelles, phénomène géologique rarissime. Résultat d'une altération naturelle de roches volcaniques — même mélangés, les sables se séparent naturellement.",tags:["Géologie","Nature","Photos","Unique"],lat:-20.433,lng:57.390},
-  {id:6,cat:"nature",title:"Gorges Rivière Noire",rating:4.8,reviews:"4 600 avis",prix:"€",dur:"Demi-journée",ouvert:"Lever-coucher",tel:"+230 464 1053",photos:["https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80","https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80","https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80"],bdg:"Panorama 360°",desc:"Le plus grand parc national de Maurice. Sommet à 828m avec vue 360°. Forêt endémique abritant l'Echo Parakeet et de nombreuses espèces rares.",tags:["Randonnée","Panorama","Oiseaux","Parc National"],lat:-20.360,lng:57.433},
-  {id:7,cat:"nature",title:"Cascade de Chamarel",rating:4.6,reviews:"3 200 avis",prix:"€",dur:"1h",ouvert:"8h-17h",tel:"+230 483 5159",photos:["https://images.unsplash.com/photo-1467890947394-8171244e5410?w=800&q=80","https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80","https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80"],bdg:"100m de hauteur",desc:"La plus haute chute d'eau de Maurice avec 100 mètres de chute dans une gorge encaissée entourée d'une forêt tropicale dense.",tags:["Cascade","Nature","Forêt tropicale","Photos"],lat:-20.435,lng:57.392},
-  {id:8,cat:"nature",title:"Jardin de Pamplemousses",rating:4.5,reviews:"7 300 avis",prix:"€",dur:"2-3h",ouvert:"8h30-17h30",tel:"+230 243 9401",photos:["https://images.unsplash.com/photo-1585320806297-9794b3e4ebe5?w=800&q=80","https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80","https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80"],bdg:"Jardin Botanique",desc:"Un des plus anciens jardins botaniques d'Afrique fondé en 1736, 37 hectares, 650 espèces. Les célèbres nénuphars géants Victoria Amazonica.",tags:["Botanique","Nénuphars","Histoire","Famille"],lat:-20.103,lng:57.584},
-  {id:9,cat:"hotel",title:"One&Only Le Saint Géran",rating:4.9,reviews:"2 100 avis",prix:"€€€€€",dur:"Séjour",ouvert:"24h/24",tel:"+230 401 1688",photos:["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80","https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80","https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80"],bdg:"5★ Luxe",desc:"L'un des meilleurs hôtels du monde. Presqu'île privée côte est, villas avec piscine privée et accès plage. Spa, restaurants gastronomiques, service impeccable.",tags:["5 étoiles","Luxe","Spa","Plage privée"],lat:-20.288,lng:57.749},
-  {id:10,cat:"hotel",title:"Constance Belle Mare",rating:4.8,reviews:"3 400 avis",prix:"€€€€",dur:"Séjour",ouvert:"24h/24",tel:"+230 402 2600",photos:["https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80","https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80","https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80"],bdg:"Resort Premium",desc:"Resort 5 étoiles sur 12 hectares. 7 restaurants, 5 bars, spa 2000m², deux golfs et activités nautiques.",tags:["5 étoiles","Golf","Spa","7 restaurants"],lat:-20.188,lng:57.769},
-  {id:11,cat:"hotel",title:"Sugar Beach Mauritius",rating:4.7,reviews:"2 800 avis",prix:"€€€",dur:"Séjour",ouvert:"24h/24",tel:"+230 403 3300",photos:["https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80","https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80","https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80"],bdg:"Côte Ouest",desc:"Élégant resort colonial côte ouest. Architecture coloniale raffinée, jardins tropicaux, plage de sable blanc.",tags:["4 étoiles","Colonial","Coucher de soleil","Romantique"],lat:-20.293,lng:57.363},
-  {id:12,cat:"restaurant",title:"Le Barachois",rating:4.8,reviews:"1 890 avis",prix:"€€€",dur:"2-3h",ouvert:"12h-14h30 · 19h-22h",tel:"+230 263 8980",photos:["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80","https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Cuisine créole",desc:"Restaurant gastronomique flottant sur île artificielle, accessible en barque. Vue sur le lagon illuminé la nuit. Cuisine créole de haute qualité.",tags:["Gastronomique","Créole","Romantique","Vue mer"],lat:-20.014,lng:57.583},
-  {id:13,cat:"restaurant",title:"Marché de Port Louis",rating:4.5,reviews:"4 200 avis",prix:"€",dur:"1-2h",ouvert:"6h-18h (Lun-Sam)",tel:"+230 212 0706",photos:["https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80","https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Street Food",desc:"Cœur gastronomique populaire de Maurice. Dholl puri, roti, boulettes chinoises, samoussas et gâteaux piments.",tags:["Street Food","Authentique","Marché","Local"],lat:-20.161,lng:57.501},
-  {id:14,cat:"aventure",title:"Kitesurf au Morne",rating:4.9,reviews:"1 200 avis",prix:"€€€",dur:"Demi-journée",ouvert:"8h-17h",tel:"+230 450 5000",photos:["https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80","https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=80","https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"],bdg:"Top mondial",desc:"L'un des 10 meilleurs spots de kitesurf au monde. Vents alizés constants, lagon peu profond parfait. Écoles certifiées pour tous niveaux.",tags:["Kitesurf","Windsurf","Cours","Lagon"],lat:-20.480,lng:57.325},
-  {id:15,cat:"aventure",title:"Nage avec les Dauphins",rating:4.9,reviews:"3 600 avis",prix:"€€€",dur:"Matinée 4h-10h",ouvert:"4h-10h",tel:"+230 483 5555",photos:["https://images.unsplash.com/photo-1564858664726-6b2196f18559?w=800&q=80","https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80","https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80"],bdg:"Expérience magique",desc:"Des centaines de dauphins spinner dans la baie de Tamarin tôt le matin. En bateau rapide, plongez pour évoluer parmi eux.",tags:["Dauphins","Snorkeling","Bateau","Magique"],lat:-20.310,lng:57.340},
-  {id:16,cat:"aventure",title:"Randonnée Montagne du Morne",rating:4.8,reviews:"2 800 avis",prix:"Gratuit",dur:"4-5h",ouvert:"Lever-14h",tel:"+230 464 1053",photos:["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80","https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80","https://images.unsplash.com/photo-1440581572325-0bea30075d9d?w=800&q=80"],bdg:"UNESCO",desc:"Site UNESCO, 556 mètres. Vue à 360° sur la côte sud-ouest et le lagon turquoise. Guide local obligatoire.",tags:["Randonnée","UNESCO","Panorama","Difficile"],lat:-20.461,lng:57.316},
-  {id:17,cat:"nightlife",title:"Grand Baie — Nightlife",rating:4.5,reviews:"5 200 avis",prix:"€€",dur:"Soirée",ouvert:"21h-4h",tel:"",photos:["https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80","https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80"],bdg:"Hotspot",desc:"Centre de la vie nocturne mauricienne. Bars, clubs, musique sega live et ambiance cosmopolite.",tags:["Nightlife","Bars","Clubs","Sega"],lat:-20.014,lng:57.583},
-  {id:18,cat:"nightlife",title:"Sega Show — Dîner Spectacle",rating:4.8,reviews:"3 100 avis",prix:"€€€",dur:"Soirée 3h",ouvert:"19h-23h",tel:"+230 263 3000",photos:["https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80","https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80"],bdg:"Culture & Danse",desc:"Danse traditionnelle de l'île Maurice. Dîner créole + show avec musiciens jouant du ravanne.",tags:["Sega","Danse","Dîner spectacle","Culturel"],lat:-20.261,lng:57.577},
-  {id:19,cat:"shopping",title:"Caudan Waterfront",rating:4.6,reviews:"8 900 avis",prix:"€€",dur:"2-4h",ouvert:"9h30-21h",tel:"+230 211 9500",photos:["https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"],bdg:"Front de mer",desc:"Complexe commercial emblématique de Port Louis. Boutiques, casino, cinéma, musée, restaurants. Rhum Chamarel et artisanat local.",tags:["Shopping","Port Louis","Artisanat","Rhum"],lat:-20.162,lng:57.501},
-  {id:20,cat:"shopping",title:"Marché Artisanal Floréal",rating:4.3,reviews:"2 400 avis",prix:"€",dur:"1-2h",ouvert:"9h-17h (Lun-Sam)",tel:"+230 696 1251",photos:["https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Artisanat local",desc:"Paradis de l'artisanat mauricien : maquettes de bateaux, bijoux en coquillages, épices locales.",tags:["Artisanat","Maquettes","Bijoux","Épices"],lat:-20.240,lng:57.531},
-  {id:21,cat:"culture",title:"Grand Bassin (Ganga Talao)",rating:4.7,reviews:"4 800 avis",prix:"Gratuit",dur:"2h",ouvert:"Accès libre",tel:"",photos:["https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80"],bdg:"Site sacré hindou",desc:"Lac sacré le plus important de Maurice pour la communauté hindoue. Cratère volcanique à 550m, temples colorés, statues géantes.",tags:["Hindouisme","Temple","Lac volcanique","Spirituel"],lat:-20.434,lng:57.447},
-  {id:22,cat:"culture",title:"Aapravasi Ghat",rating:4.6,reviews:"3 200 avis",prix:"€",dur:"1-2h",ouvert:"9h-16h (fermé dim)",tel:"+230 212 6756",photos:["https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Patrimoine UNESCO",desc:"Site UNESCO où débarquèrent 500 000 travailleurs engagés indiens entre 1834 et 1924.",tags:["UNESCO","Histoire","Port Louis"],lat:-20.162,lng:57.505},
-  {id:23,cat:"detente",title:"Spa du One&Only",rating:4.9,reviews:"890 avis",prix:"€€€€",dur:"2-4h",ouvert:"9h-21h",tel:"+230 401 1688",photos:["https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80","https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80","https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80"],bdg:"Spa 5★",desc:"L'un des meilleurs spas de l'Océan Indien sur 2000m². Soins aux traditions asiatiques et remèdes mauriciens.",tags:["Spa","Relaxation","Massages","Luxe"],lat:-20.288,lng:57.749},
-  {id:24,cat:"detente",title:"Yoga & Retraite Tamarin",rating:4.7,reviews:"450 avis",prix:"€€",dur:"Séance/Séjour",ouvert:"6h-19h",tel:"+230 483 6789",photos:["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80","https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"],bdg:"Bien-être",desc:"Centre de bien-être reconnu. Yoga et méditation face à l'océan, cours au lever du soleil, massages ayurvédiques.",tags:["Yoga","Méditation","Bien-être","Retraite"],lat:-20.326,lng:57.378},
-  {id:25,cat:"restaurant",title:"Symon's Restaurant",rating:4.7,reviews:"2 300 avis",prix:"€€",dur:"1-2h",ouvert:"11h-22h",tel:"+230 483 6200",photos:["https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80","https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80","https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80"],bdg:"Fruits de mer",desc:"Institution mauricienne à Chamarel avec vue panoramique sur la côte ouest. Fruits de mer frais et cuisine créole authentique.",tags:["Fruits de mer","Vue panoramique","Créole","Homard"],lat:-20.433,lng:57.392},
+  {id:1,cat:"plage",title:"Île aux Cerfs",rating:4.8,reviews:"12 450 avis",prix:"€€",dur:"Journée",ouvert:"6h-18h",tel:"+230 480 2222",photos:["https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80","https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80"],bdg:"Incontournable",desc:"L'île aux Cerfs est le joyau de l'île Maurice. Accessible en bateau, entourée d'un lagon turquoise d'une beauté époustouflante. Ski nautique, plongée en apnée, parasailing dans un cadre paradisiaque.",tags:["Plage","Snorkeling","Bateau","Famille"],lat:-20.277,lng:57.795},
+  {id:2,cat:"plage",title:"Trou aux Biches",rating:4.7,reviews:"8 200 avis",prix:"Gratuit",dur:"Journée",ouvert:"Accès libre",tel:"",photos:["https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80","https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80"],bdg:"Eaux turquoise",desc:"Plage de rêve sur la côte nord. Eaux calmes transparentes, sable blanc immaculé, snorkeling exceptionnel.",tags:["Plage","Snorkeling","Famille","Gratuit"],lat:-20.026,lng:57.539},
+  {id:3,cat:"plage",title:"Flic en Flac",rating:4.6,reviews:"6 800 avis",prix:"Gratuit",dur:"Journée/Soirée",ouvert:"Accès libre",tel:"",photos:["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80","https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80","https://images.unsplash.com/photo-1480044965905-02098d419e96?w=800&q=80"],bdg:"Sunset magique",desc:"La plage la plus longue de la côte Ouest. Couchers de soleil légendaires, restaurants et plongée.",tags:["Plage","Coucher de soleil","Restaurants","Plongée"],lat:-20.293,lng:57.363},
+  {id:4,cat:"plage",title:"Blue Bay",rating:4.9,reviews:"9 100 avis",prix:"€",dur:"Demi-journée",ouvert:"8h-17h",tel:"+230 631 9000",photos:["https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80","https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80","https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80"],bdg:"Parc marin UNESCO",desc:"Parc marin protégé, l'un des plus beaux récifs de l'Océan Indien. Raies mantas, tortues et 50+ espèces de coraux.",tags:["Snorkeling","Plongée","Tortues","Parc Marin"],lat:-20.456,lng:57.707},
+  {id:5,cat:"nature",title:"Chamarel — 7 Couleurs",rating:4.7,reviews:"5 400 avis",prix:"€",dur:"2h",ouvert:"8h30-17h30",tel:"+230 483 5159",photos:["https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80","https://images.unsplash.com/photo-1467890947394-8171244e5410?w=800&q=80","https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80"],bdg:"Unique au monde",desc:"Dunes de sable aux 7 couleurs naturelles, phénomène géologique rarissime.",tags:["Géologie","Nature","Photos","Unique"],lat:-20.433,lng:57.390},
+  {id:6,cat:"nature",title:"Gorges Rivière Noire",rating:4.8,reviews:"4 600 avis",prix:"€",dur:"Demi-journée",ouvert:"Lever-coucher",tel:"+230 464 1053",photos:["https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80","https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80","https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80"],bdg:"Panorama 360°",desc:"Parc national, sommet à 828m, vue 360°. Forêt endémique avec l'Echo Parakeet.",tags:["Randonnée","Panorama","Oiseaux","Parc National"],lat:-20.360,lng:57.433},
+  {id:7,cat:"nature",title:"Cascade de Chamarel",rating:4.6,reviews:"3 200 avis",prix:"€",dur:"1h",ouvert:"8h-17h",tel:"+230 483 5159",photos:["https://images.unsplash.com/photo-1467890947394-8171244e5410?w=800&q=80","https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80","https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80"],bdg:"100m de hauteur",desc:"La plus haute chute d'eau de Maurice, 100m dans une gorge de forêt tropicale.",tags:["Cascade","Nature","Forêt","Photos"],lat:-20.435,lng:57.392},
+  {id:8,cat:"nature",title:"Jardin de Pamplemousses",rating:4.5,reviews:"7 300 avis",prix:"€",dur:"2-3h",ouvert:"8h30-17h30",tel:"+230 243 9401",photos:["https://images.unsplash.com/photo-1585320806297-9794b3e4ebe5?w=800&q=80","https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80","https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80"],bdg:"Jardin Botanique",desc:"Jardin botanique fondé en 1736, 37 hectares, 650 espèces. Nénuphars géants Victoria Amazonica.",tags:["Botanique","Nénuphars","Histoire","Famille"],lat:-20.103,lng:57.584},
+  {id:9,cat:"hotel",title:"One&Only Le Saint Géran",rating:4.9,reviews:"2 100 avis",prix:"€€€€€",dur:"Séjour",ouvert:"24h/24",tel:"+230 401 1688",photos:["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80","https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80","https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80"],bdg:"5★ Luxe",desc:"L'un des meilleurs hôtels du monde. Presqu'île privée côte est, villas avec piscine privée.",tags:["5 étoiles","Luxe","Spa","Plage privée"],lat:-20.288,lng:57.749},
+  {id:10,cat:"hotel",title:"Constance Belle Mare",rating:4.8,reviews:"3 400 avis",prix:"€€€€",dur:"Séjour",ouvert:"24h/24",tel:"+230 402 2600",photos:["https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80","https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80","https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80"],bdg:"Resort Premium",desc:"Resort 5 étoiles sur 12 hectares. 7 restaurants, spa 2000m², deux golfs.",tags:["5 étoiles","Golf","Spa","7 restaurants"],lat:-20.188,lng:57.769},
+  {id:11,cat:"hotel",title:"Sugar Beach Mauritius",rating:4.7,reviews:"2 800 avis",prix:"€€€",dur:"Séjour",ouvert:"24h/24",tel:"+230 403 3300",photos:["https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80","https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80","https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80"],bdg:"Côte Ouest",desc:"Élégant resort colonial côte ouest. Architecture raffinée, jardins tropicaux, couchers de soleil.",tags:["4 étoiles","Colonial","Coucher de soleil","Romantique"],lat:-20.293,lng:57.363},
+  {id:12,cat:"restaurant",title:"Le Barachois",rating:4.8,reviews:"1 890 avis",prix:"€€€",dur:"2-3h",ouvert:"12h-14h30 · 19h-22h",tel:"+230 263 8980",photos:["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80","https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Cuisine créole",desc:"Restaurant gastronomique flottant sur île artificielle. Vue sur le lagon illuminé la nuit.",tags:["Gastronomique","Créole","Romantique","Vue mer"],lat:-20.014,lng:57.583},
+  {id:13,cat:"restaurant",title:"Marché de Port Louis",rating:4.5,reviews:"4 200 avis",prix:"€",dur:"1-2h",ouvert:"6h-18h (Lun-Sam)",tel:"+230 212 0706",photos:["https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80","https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Street Food",desc:"Dholl puri, roti, boulettes chinoises, samoussas et gâteaux piments authentiques.",tags:["Street Food","Authentique","Marché","Local"],lat:-20.161,lng:57.501},
+  {id:14,cat:"aventure",title:"Kitesurf au Morne",rating:4.9,reviews:"1 200 avis",prix:"€€€",dur:"Demi-journée",ouvert:"8h-17h",tel:"+230 450 5000",photos:["https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80","https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=80","https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"],bdg:"Top mondial",desc:"L'un des 10 meilleurs spots kitesurf au monde. Vents alizés constants, écoles certifiées.",tags:["Kitesurf","Windsurf","Cours","Lagon"],lat:-20.480,lng:57.325},
+  {id:15,cat:"aventure",title:"Nage avec les Dauphins",rating:4.9,reviews:"3 600 avis",prix:"€€€",dur:"Matinée 4h-10h",ouvert:"4h-10h",tel:"+230 483 5555",photos:["https://images.unsplash.com/photo-1564858664726-6b2196f18559?w=800&q=80","https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80","https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80"],bdg:"Expérience magique",desc:"Centaines de dauphins spinner dans la baie de Tamarin tôt le matin.",tags:["Dauphins","Snorkeling","Bateau","Magique"],lat:-20.310,lng:57.340},
+  {id:16,cat:"aventure",title:"Randonnée Morne",rating:4.8,reviews:"2 800 avis",prix:"Gratuit",dur:"4-5h",ouvert:"Lever-14h",tel:"+230 464 1053",photos:["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80","https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&q=80","https://images.unsplash.com/photo-1440581572325-0bea30075d9d?w=800&q=80"],bdg:"UNESCO",desc:"Site UNESCO, 556m. Vue 360° sur le lagon turquoise. Guide obligatoire.",tags:["Randonnée","UNESCO","Panorama","Difficile"],lat:-20.461,lng:57.316},
+  {id:17,cat:"nightlife",title:"Grand Baie — Nightlife",rating:4.5,reviews:"5 200 avis",prix:"€€",dur:"Soirée",ouvert:"21h-4h",tel:"",photos:["https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80","https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80"],bdg:"Hotspot",desc:"Centre de la vie nocturne. Bars, clubs, musique sega live, ambiance cosmopolite.",tags:["Nightlife","Bars","Clubs","Sega"],lat:-20.014,lng:57.583},
+  {id:18,cat:"nightlife",title:"Sega Show Dîner Spectacle",rating:4.8,reviews:"3 100 avis",prix:"€€€",dur:"Soirée 3h",ouvert:"19h-23h",tel:"+230 263 3000",photos:["https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80","https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80"],bdg:"Culture & Danse",desc:"Danse traditionnelle mauricienne. Dîner créole + show musiciens ravanne.",tags:["Sega","Danse","Dîner spectacle","Culturel"],lat:-20.261,lng:57.577},
+  {id:19,cat:"shopping",title:"Caudan Waterfront",rating:4.6,reviews:"8 900 avis",prix:"€€",dur:"2-4h",ouvert:"9h30-21h",tel:"+230 211 9500",photos:["https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"],bdg:"Front de mer",desc:"Complexe commercial Port Louis. Boutiques, casino, cinéma, rhum Chamarel.",tags:["Shopping","Port Louis","Artisanat","Rhum"],lat:-20.162,lng:57.501},
+  {id:20,cat:"shopping",title:"Marché Artisanal Floréal",rating:4.3,reviews:"2 400 avis",prix:"€",dur:"1-2h",ouvert:"9h-17h (Lun-Sam)",tel:"+230 696 1251",photos:["https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Artisanat local",desc:"Maquettes de bateaux, bijoux en coquillages, épices locales. Prix négociables.",tags:["Artisanat","Maquettes","Bijoux","Épices"],lat:-20.240,lng:57.531},
+  {id:21,cat:"culture",title:"Grand Bassin",rating:4.7,reviews:"4 800 avis",prix:"Gratuit",dur:"2h",ouvert:"Accès libre",tel:"",photos:["https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80","https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=800&q=80"],bdg:"Site sacré hindou",desc:"Lac sacré hindou dans cratère volcanique à 550m. Temples colorés et statues géantes.",tags:["Hindouisme","Temple","Lac volcanique","Spirituel"],lat:-20.434,lng:57.447},
+  {id:22,cat:"culture",title:"Aapravasi Ghat",rating:4.6,reviews:"3 200 avis",prix:"€",dur:"1-2h",ouvert:"9h-16h",tel:"+230 212 6756",photos:["https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=80","https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80","https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80"],bdg:"Patrimoine UNESCO",desc:"Site UNESCO, 500 000 travailleurs engagés indiens entre 1834 et 1924.",tags:["UNESCO","Histoire","Port Louis"],lat:-20.162,lng:57.505},
+  {id:23,cat:"detente",title:"Spa du One&Only",rating:4.9,reviews:"890 avis",prix:"€€€€",dur:"2-4h",ouvert:"9h-21h",tel:"+230 401 1688",photos:["https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80","https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80","https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80"],bdg:"Spa 5★",desc:"L'un des meilleurs spas de l'Océan Indien. Soins aux traditions asiatiques et remèdes mauriciens.",tags:["Spa","Relaxation","Massages","Luxe"],lat:-20.288,lng:57.749},
+  {id:24,cat:"detente",title:"Yoga & Retraite Tamarin",rating:4.7,reviews:"450 avis",prix:"€€",dur:"Séance/Séjour",ouvert:"6h-19h",tel:"+230 483 6789",photos:["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80","https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80","https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"],bdg:"Bien-être",desc:"Yoga et méditation face à l'océan, massages ayurvédiques au lever du soleil.",tags:["Yoga","Méditation","Bien-être","Retraite"],lat:-20.326,lng:57.378},
+  {id:25,cat:"restaurant",title:"Symon's Restaurant",rating:4.7,reviews:"2 300 avis",prix:"€€",dur:"1-2h",ouvert:"11h-22h",tel:"+230 483 6200",photos:["https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80","https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80","https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80"],bdg:"Fruits de mer",desc:"Vue panoramique côte ouest. Fruits de mer frais et cuisine créole authentique à Chamarel.",tags:["Fruits de mer","Vue","Créole","Homard"],lat:-20.433,lng:57.392},
 ];
-function switchPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');btn.classList.add('active');}
-function catLabel(cat){const m={plage:'🏖️ Plage',nature:'🌿 Nature',hotel:'🏨 Hôtel',restaurant:'🍽️ Resto',aventure:'🧗 Aventure',nightlife:'🎵 Nightlife',shopping:'🛍️ Shopping',culture:'🏛️ Culture',detente:'🧖 Détente'};return m[cat]||cat;}
+
+function catLabel(c){return{plage:'🏖️ Plage',nature:'🌿 Nature',hotel:'🏨 Hôtel',restaurant:'🍽️ Resto',aventure:'🧗 Aventure',nightlife:'🎵 Nightlife',shopping:'🛍️ Shopping',culture:'🏛️ Culture',detente:'🧖 Détente'}[c]||c;}
 function renderCards(cat='all'){const list=cat==='all'?DATA:DATA.filter(a=>a.cat===cat);document.getElementById('grid').innerHTML=list.map(a=>`<div class="card" onclick="openDetail(${a.id})"><div class="cimg"><img class="cphoto" src="${a.photos[0]}" alt="${a.title}" loading="lazy"><div class="cimg-overlay"></div>${a.bdg?`<div class="cbdg">${a.bdg}</div>`:''}<div class="ccat-tag">${catLabel(a.cat)}</div><div class="crating">⭐ ${a.rating}</div></div><div class="cbody"><div class="ctitle">${a.title}</div><div class="cdesc">${a.desc}</div><div class="cfoot"><div class="cmeta"><span>⏱ ${a.dur}</span><span>💰 ${a.prix}</span></div><button class="btn-detail">Voir →</button></div></div></div>`).join('');}
 function filterCat(cat,btn){document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCards(cat);}
+
 let detailMap=null;
-function openDetail(id){const p=DATA.find(a=>a.id===id);if(!p)return;document.getElementById('detail-photos').innerHTML=`<div class="detail-main-photo" onclick="openLightbox('${p.photos[0]}')"><img src="${p.photos[0]}" alt="${p.title}"></div><div class="detail-side-photos">${p.photos.slice(1,3).map((ph,i)=>`<div class="detail-side-photo" onclick="openLightbox('${ph}')"><img src="${ph}" alt="">${i===1&&p.photos.length>3?`<div class="detail-more">+${p.photos.length-3}</div>`:''}</div>`).join('')}</div>`;document.getElementById('detail-cat').innerHTML=catLabel(p.cat);document.getElementById('detail-title').textContent=p.title;document.getElementById('detail-stars').textContent='★'.repeat(Math.round(p.rating))+` ${p.rating}`;document.getElementById('detail-reviews').textContent=p.reviews;document.getElementById('detail-price').textContent=p.prix;document.getElementById('detail-infos').innerHTML=[{icon:'⏱',label:'Durée',val:p.dur},{icon:'💰',label:'Prix',val:p.prix},{icon:'🕐',label:'Horaires',val:p.ouvert||'Variable'},{icon:'📞',label:'Contact',val:p.tel||'Non communiqué'}].map(i=>`<div class="detail-info-item"><div class="detail-info-icon">${i.icon}</div><div><div class="detail-info-label">${i.label}</div><div class="detail-info-val">${i.val}</div></div></div>`).join('');document.getElementById('detail-desc').textContent=p.desc;document.getElementById('detail-tags').innerHTML=p.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('photo-strip').innerHTML=p.photos.map(ph=>`<div class="photo-strip-item" onclick="openLightbox('${ph}')"><img src="${ph}" alt="" loading="lazy"></div>`).join('');document.getElementById('btn-launch-gps').onclick=()=>openGPS(p.id);if(detailMap){detailMap.remove();detailMap=null;}document.getElementById('detail-map-preview').innerHTML='';document.getElementById('detail-screen').classList.add('open');document.getElementById('detail-screen').scrollTop=0;document.body.style.overflow='hidden';setTimeout(()=>{detailMap=L.map('detail-map-preview',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,subdomains:['a','b','c']}).addTo(detailMap);L.marker([p.lat,p.lng],{icon:miniIcon(p.photos[0])}).addTo(detailMap);detailMap.setView([p.lat,p.lng],14);},200);}
-function miniIcon(photo){return L.divIcon({className:'',iconSize:[38,38],iconAnchor:[19,38],html:`<div style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.5);"><img src="${photo}" style="width:100%;height:100%;object-fit:cover;"></div><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #fff;margin:0 auto;margin-top:-2px;"></div>`});}
+function openDetail(id){const p=DATA.find(a=>a.id===id);if(!p)return;document.getElementById('detail-photos').innerHTML=`<div class="detail-main-photo" onclick="openLightbox('${p.photos[0]}')"><img src="${p.photos[0]}" alt=""></div><div class="detail-side-photos">${p.photos.slice(1,3).map((ph,i)=>`<div class="detail-side-photo" onclick="openLightbox('${ph}')"><img src="${ph}" alt="">${i===1&&p.photos.length>3?`<div class="detail-more">+${p.photos.length-3}</div>`:''}</div>`).join('')}</div>`;document.getElementById('detail-cat').innerHTML=catLabel(p.cat);document.getElementById('detail-title').textContent=p.title;document.getElementById('detail-stars').textContent='★'.repeat(Math.round(p.rating))+` ${p.rating}`;document.getElementById('detail-reviews').textContent=p.reviews;document.getElementById('detail-price').textContent=p.prix;document.getElementById('detail-infos').innerHTML=[{icon:'⏱',label:'Durée',val:p.dur},{icon:'💰',label:'Prix',val:p.prix},{icon:'🕐',label:'Horaires',val:p.ouvert},{icon:'📞',label:'Contact',val:p.tel||'Non communiqué'}].map(i=>`<div class="detail-info-item"><div class="detail-info-icon">${i.icon}</div><div><div class="detail-info-label">${i.label}</div><div class="detail-info-val">${i.val}</div></div></div>`).join('');document.getElementById('detail-desc').textContent=p.desc;document.getElementById('detail-tags').innerHTML=p.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('photo-strip').innerHTML=p.photos.map(ph=>`<div class="photo-strip-item" onclick="openLightbox('${ph}')"><img src="${ph}" loading="lazy"></div>`).join('');document.getElementById('btn-launch-gps').onclick=()=>openGPS(p.id);if(detailMap){detailMap.remove();detailMap=null;}document.getElementById('detail-map-preview').innerHTML='';document.getElementById('detail-screen').classList.add('open');document.getElementById('detail-screen').scrollTop=0;document.body.style.overflow='hidden';setTimeout(()=>{detailMap=L.map('detail-map-preview',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,subdomains:['a','b','c']}).addTo(detailMap);L.marker([p.lat,p.lng],{icon:mIcon(p.photos[0])}).addTo(detailMap);detailMap.setView([p.lat,p.lng],14);},200);}
+function mIcon(photo){return L.divIcon({className:'',iconSize:[38,38],iconAnchor:[19,38],html:`<div style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.5);"><img src="${photo}" style="width:100%;height:100%;object-fit:cover;"></div><div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #fff;margin:0 auto;"></div>`});}
 function closeDetail(){if(detailMap){detailMap.remove();detailMap=null;}document.getElementById('detail-screen').classList.remove('open');document.body.style.overflow='';}
-let gpsMap=null,userMk=null,destMk=null,routeLn=null,watchId=null,curPlace=null,userLL=null;
-function userIcon(){return L.divIcon({className:'',iconSize:[22,22],iconAnchor:[11,11],html:`<div style="width:22px;height:22px;border-radius:50%;background:#00b4d8;border:3px solid #fff;box-shadow:0 0 0 5px rgba(0,180,216,.3);animation:gpsP 2s ease-in-out infinite;"></div><style>@keyframes gpsP{0%,100%{box-shadow:0 0 0 5px rgba(0,180,216,.3)}50%{box-shadow:0 0 0 14px rgba(0,180,216,.05)}}</style>`});}
-function openGPS(id){curPlace=DATA.find(a=>a.id===id);if(!curPlace)return;document.getElementById('gps-name').textContent=curPlace.title;document.getElementById('gps-sub').textContent='Initialisation GPS...';document.getElementById('gps-photo').src=curPlace.photos[0];setStats('—','—','—');setStatus('searching','⏳ Recherche GPS...');document.getElementById('gps-screen').classList.add('open');requestAnimationFrame(()=>{initGPSMap();startWatch();});}
-function initGPSMap(){if(gpsMap){gpsMap.remove();gpsMap=null;userMk=null;destMk=null;routeLn=null;}gpsMap=L.map('gps-map',{zoomControl:true,attributionControl:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,subdomains:['a','b','c']}).addTo(gpsMap);destMk=L.marker([curPlace.lat,curPlace.lng],{icon:miniIcon(curPlace.photos[0])}).addTo(gpsMap).bindPopup(`<b>${curPlace.title}</b>`);gpsMap.setView([curPlace.lat,curPlace.lng],13);document.getElementById('gps-map').appendChild(document.getElementById('btn-recenter'));}
-function startWatch(){if(!navigator.geolocation){setStatus('error','❌ GPS non disponible');return;}if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(onPos,onGPSErr,{enableHighAccuracy:true,timeout:20000,maximumAge:2000});}
-function onPos(pos){const{latitude:la,longitude:lo,accuracy:ac}=pos.coords;const first=!userLL;userLL=[la,lo];if(!userMk){userMk=L.marker([la,lo],{icon:userIcon(),zIndexOffset:1000}).addTo(gpsMap).bindPopup('📍 Vous êtes ici');}else userMk.setLatLng([la,lo]);if(routeLn)gpsMap.removeLayer(routeLn);routeLn=L.polyline([[la,lo],[curPlace.lat,curPlace.lng]],{color:'#00b4d8',weight:3,dashArray:'10,8',opacity:.7}).addTo(gpsMap);if(first)gpsMap.fitBounds(L.latLngBounds([la,lo],[curPlace.lat,curPlace.lng]),{padding:[60,60],maxZoom:14});const dist=calcDist(la,lo,curPlace.lat,curPlace.lng);const dir=toDir(calcBear(la,lo,curPlace.lat,curPlace.lng));const ds=dist<1?Math.round(dist*1000)+'m':dist.toFixed(1)+'km';setStats(ds,dir,'±'+Math.round(ac)+'m');document.getElementById('gps-sub').textContent=`À ${ds} · cap ${dir}`;setStatus('live','');}
-function onGPSErr(e){let m='❌ Erreur GPS';if(e.code===1)m='🔒 Permission refusée — Active la localisation dans Réglages';else if(e.code===2)m='📡 Signal indisponible';else if(e.code===3)m='⏱ Timeout GPS';setStatus('error',m);}
-function recenter(){if(!gpsMap)return;if(userLL)gpsMap.fitBounds(L.latLngBounds(userLL,[curPlace.lat,curPlace.lng]),{padding:[60,60],maxZoom:14});else gpsMap.setView([curPlace.lat,curPlace.lng],13);}
-function closeGPS(){if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}if(gpsMap){gpsMap.remove();gpsMap=null;}userMk=null;destMk=null;routeLn=null;userLL=null;curPlace=null;document.getElementById('gps-screen').classList.remove('open');}
+
+let gpsMap=null,uMk=null,dMk=null,rLn=null,wId=null,cur=null,uLL=null;
+function uIcon(){return L.divIcon({className:'',iconSize:[22,22],iconAnchor:[11,11],html:`<div style="width:22px;height:22px;border-radius:50%;background:#00b4d8;border:3px solid #fff;box-shadow:0 0 0 5px rgba(0,180,216,.3);animation:gP 2s ease-in-out infinite;"></div><style>@keyframes gP{0%,100%{box-shadow:0 0 0 5px rgba(0,180,216,.3)}50%{box-shadow:0 0 0 14px rgba(0,180,216,.05)}}</style>`});}
+function openGPS(id){cur=DATA.find(a=>a.id===id);if(!cur)return;document.getElementById('gps-name').textContent=cur.title;document.getElementById('gps-sub').textContent='GPS...';document.getElementById('gps-photo').src=cur.photos[0];setStats('—','—','—');setSt('searching','⏳ Recherche GPS...');document.getElementById('gps-screen').classList.add('open');requestAnimationFrame(()=>{if(gpsMap){gpsMap.remove();gpsMap=null;uMk=null;dMk=null;rLn=null;}gpsMap=L.map('gps-map',{zoomControl:true,attributionControl:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,subdomains:['a','b','c']}).addTo(gpsMap);dMk=L.marker([cur.lat,cur.lng],{icon:mIcon(cur.photos[0])}).addTo(gpsMap).bindPopup(`<b>${cur.title}</b>`);gpsMap.setView([cur.lat,cur.lng],13);document.getElementById('gps-map').appendChild(document.getElementById('btn-recenter'));if(!navigator.geolocation){setSt('error','❌ GPS non disponible');return;}if(wId!==null)navigator.geolocation.clearWatch(wId);wId=navigator.geolocation.watchPosition(p=>{const{latitude:la,longitude:lo,accuracy:ac}=p.coords;const f=!uLL;uLL=[la,lo];if(!uMk){uMk=L.marker([la,lo],{icon:uIcon(),zIndexOffset:1000}).addTo(gpsMap).bindPopup('📍 Vous êtes ici');}else uMk.setLatLng([la,lo]);if(rLn)gpsMap.removeLayer(rLn);rLn=L.polyline([[la,lo],[cur.lat,cur.lng]],{color:'#00b4d8',weight:3,dashArray:'10,8',opacity:.7}).addTo(gpsMap);if(f)gpsMap.fitBounds(L.latLngBounds([la,lo],[cur.lat,cur.lng]),{padding:[60,60],maxZoom:14});const d=cD(la,lo,cur.lat,cur.lng),dir=tD(cB(la,lo,cur.lat,cur.lng)),ds=d<1?Math.round(d*1000)+'m':d.toFixed(1)+'km';setStats(ds,dir,'±'+Math.round(ac)+'m');document.getElementById('gps-sub').textContent=`À ${ds} · cap ${dir}`;setSt('live','');},e=>{let m='❌ Erreur GPS';if(e.code===1)m='🔒 Permission refusée';else if(e.code===2)m='📡 Signal indisponible';setSt('error',m);},{enableHighAccuracy:true,timeout:20000,maximumAge:2000});});}
+function recenter(){if(!gpsMap)return;if(uLL)gpsMap.fitBounds(L.latLngBounds(uLL,[cur.lat,cur.lng]),{padding:[60,60],maxZoom:14});else gpsMap.setView([cur.lat,cur.lng],13);}
+function closeGPS(){if(wId!==null){navigator.geolocation.clearWatch(wId);wId=null;}if(gpsMap){gpsMap.remove();gpsMap=null;}uMk=null;dMk=null;rLn=null;uLL=null;cur=null;document.getElementById('gps-screen').classList.remove('open');}
 function setStats(d,dir,a){document.getElementById('v-dist').textContent=d;document.getElementById('v-dir').textContent=dir;document.getElementById('v-acc').textContent=a;}
-function setStatus(t,m){const el=document.getElementById('status-bar');el.className='status-bar '+t;el.innerHTML=t==='live'?'<div class="pulse"></div> GPS actif — Temps réel':m;}
-function calcDist(la1,lo1,la2,lo2){const R=6371,dL=(la2-la1)*Math.PI/180,dO=(lo2-lo1)*Math.PI/180;const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
-function calcBear(la1,lo1,la2,lo2){const dO=(lo2-lo1)*Math.PI/180;const y=Math.sin(dO)*Math.cos(la2*Math.PI/180);const x=Math.cos(la1*Math.PI/180)*Math.sin(la2*Math.PI/180)-Math.sin(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.cos(dO);return(Math.atan2(y,x)*180/Math.PI+360)%360;}
-function toDir(b){return['N','NE','E','SE','S','SO','O','NO'][Math.round(b/45)%8];}
+function setSt(t,m){const el=document.getElementById('status-bar');el.className='status-bar '+t;el.innerHTML=t==='live'?'<div class="pulse"></div> GPS actif':m;}
+function cD(a,b,c,d){const R=6371,dL=(c-a)*Math.PI/180,dO=(d-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function cB(a,b,c,d){const dO=(d-b)*Math.PI/180,y=Math.sin(dO)*Math.cos(c*Math.PI/180),x=Math.cos(a*Math.PI/180)*Math.sin(c*Math.PI/180)-Math.sin(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.cos(dO);return(Math.atan2(y,x)*180/Math.PI+360)%360;}
+function tD(b){return['N','NE','E','SE','S','SO','O','NO'][Math.round(b/45)%8];}
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
-let scanHistory=[],codeReader=null;
-function switchScanTab(tab,btn){document.querySelectorAll('.scan-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');['camera','photo','search'].forEach(t=>document.getElementById('scan-'+t+'-view').classList.remove('active'));document.getElementById('scan-'+tab+'-view').classList.add('active');if(tab!=='camera')stopCamera();}
-async function startCamera(){try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const video=document.getElementById('video-elem');video.srcObject=stream;document.getElementById('btn-cam').textContent='📷 Caméra active — Pointez vers un code-barres';document.getElementById('btn-cam').style.background='linear-gradient(135deg,#16a34a,#15803d)';if(window.ZXing){codeReader=new ZXing.BrowserMultiFormatReader();codeReader.decodeFromVideoElement(video,(result,err)=>{if(result){stopCamera();fetchByBarcode(result.getText());}});}}catch(e){document.getElementById('btn-cam').textContent='❌ Caméra non disponible — Utilisez Recherche';}}
-function stopCamera(){if(codeReader){try{codeReader.reset();}catch(e){}codeReader=null;}const video=document.getElementById('video-elem');if(video.srcObject){video.srcObject.getTracks().forEach(t=>t.stop());video.srcObject=null;}}
-async function handlePhotoUpload(e){const file=e.target.files[0];if(!file)return;showLoading();try{if(window.ZXing){const img=await createImageBitmap(file);const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;canvas.getContext('2d').drawImage(img,0,0);const reader=new ZXing.BrowserMultiFormatReader();const result=await reader.decodeFromCanvas(canvas);if(result)await fetchByBarcode(result.getText());else showError('Code-barres non détecté. Essayez la recherche.');}else{showError('Utilisez la recherche.');}}catch(err){showError('Code-barres non détecté. Essayez la recherche par nom.');}}
+
+/* ══════════════════════
+   SCAN FOOD — QUAGGA
+══════════════════════ */
+let scanHistory=[];
+let camRunning=false;
+let lastBarcode='';
+let scanCooldown=false;
+
+// Bip sonore via Web Audio API
+function playBip(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=1200;
+    osc.type='sine';
+    gain.gain.setValueAtTime(0.4,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime+0.15);
+  }catch(e){}
+}
+
+function switchScanTab(tab,btn){
+  document.querySelectorAll('.scan-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('scan-camera-view').classList.remove('active');
+  document.getElementById('scan-search-view').classList.remove('active');
+  document.getElementById('scan-'+tab+'-view').classList.add('active');
+  if(tab!=='camera') stopCamera();
+}
+
+function toggleCamera(){
+  if(camRunning) stopCamera();
+  else startCamera();
+}
+
+function startCamera(){
+  const btn=document.getElementById('btn-cam');
+  const status=document.getElementById('cam-status');
+  status.textContent='Démarrage de la caméra...';
+  status.className='cam-status';
+
+  Quagga.init({
+    inputStream:{
+      name:'Live',
+      type:'LiveStream',
+      target:document.getElementById('quagga-container'),
+      constraints:{facingMode:'environment',width:{min:640},height:{min:480}},
+    },
+    locator:{patchSize:'medium',halfSample:true},
+    numOfWorkers:2,
+    frequency:10,
+    decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader']},
+    locate:true
+  }, err=>{
+    if(err){
+      status.textContent='❌ Caméra non disponible — Utilisez la recherche';
+      status.className='cam-status err';
+      return;
+    }
+    Quagga.start();
+    camRunning=true;
+    btn.textContent='⏹ Arrêter le scanner';
+    btn.classList.add('stop');
+    status.textContent='🟢 Scanner actif — Pointez vers un code-barres';
+    status.className='cam-status ok';
+  });
+
+  Quagga.onDetected(result=>{
+    const code=result.codeResult.code;
+    if(!code || scanCooldown || code===lastBarcode) return;
+    lastBarcode=code;
+    scanCooldown=true;
+    playBip();
+    stopCamera();
+    document.getElementById('cam-status').textContent=`✅ Code détecté : ${code}`;
+    fetchByBarcode(code);
+    setTimeout(()=>{scanCooldown=false;lastBarcode='';},3000);
+  });
+}
+
+function stopCamera(){
+  if(!camRunning) return;
+  try{Quagga.stop();}catch(e){}
+  camRunning=false;
+  const btn=document.getElementById('btn-cam');
+  btn.textContent='📷 Activer le scanner';
+  btn.classList.remove('stop');
+  document.getElementById('cam-status').textContent='Scanner arrêté';
+  document.getElementById('cam-status').className='cam-status';
+}
+
 function quickSearch(q){document.getElementById('search-input').value=q;searchProduct();}
-async function searchProduct(){const q=document.getElementById('search-input').value.trim();if(!q)return;showLoading();try{const res=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=1&fields=product_name,brands,image_url,nutriscore_grade,ecoscore_grade,nutriments,ingredients_text,additives_tags`);const data=await res.json();if(data.products&&data.products.length>0)displayProduct(data.products[0]);else showError('Produit introuvable. Essayez un autre nom.');}catch(e){showError('Erreur de connexion.');}}
-async function fetchByBarcode(barcode){showLoading();try{const res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);const data=await res.json();if(data.status===1)displayProduct(data.product);else showError('Produit introuvable.');}catch(e){showError('Erreur de connexion.');}}
-function displayProduct(p){hideLoading();hideError();const name=p.product_name||'Produit inconnu';const brand=p.brands||'';const img=p.image_url||'';const nutri=(p.nutriscore_grade||'?').toUpperCase();const eco=(p.ecoscore_grade||'?').toUpperCase();const nutrients=p.nutriments||{};const ingredients=p.ingredients_text||'Non renseigné';const additives=p.additives_tags||[];let score=({A:100,B:75,C:50,D:25,E:0}[nutri])||50;const addCount=additives.length;if(addCount>5)score-=20;else if(addCount>2)score-=10;else if(addCount===0)score+=5;score=Math.max(0,Math.min(100,Math.round(score)));let gradeClass,gradeLabel,gradeColor;if(score>=75){gradeClass='score-A';gradeLabel='Excellent';gradeColor='var(--green)';}else if(score>=50){gradeClass='score-B';gradeLabel='Bon';gradeColor='#a3e635';}else if(score>=30){gradeClass='score-C';gradeLabel='Médiocre';gradeColor='#fbbf24';}else if(score>=15){gradeClass='score-D';gradeLabel='Mauvais';gradeColor='var(--orange)';}else{gradeClass='score-E';gradeLabel='Très mauvais';gradeColor='var(--red)';}
-const fat=nutrients['fat_100g']||0,satFat=nutrients['saturated-fat_100g']||0,sugar=nutrients['sugars_100g']||0,salt=nutrients['salt_100g']||0,protein=nutrients['proteins_100g']||0,fiber=nutrients['fiber_100g']||0,energy=nutrients['energy-kcal_100g']||0;
-function bp(v,max,inv=true){const pct=Math.min(100,v/max*100);return{pct,cls:inv?(pct>70?'fill-red':pct>40?'fill-yellow':'fill-green'):'fill-green'};}
-const fB=bp(fat,20),sB=bp(satFat,10),suB=bp(sugar,15),saB=bp(salt,1.5),pB=bp(protein,20,false),fiB=bp(fiber,5,false);
-const addHtml=additives.length>0?additives.slice(0,5).map(a=>{const n=a.replace('en:','').replace(/-/g,' ').toUpperCase();const r=a.includes('e1')||a.includes('e2')?'add-red':a.includes('e3')?'add-yellow':'add-green';return`<div class="additive-item"><div class="add-dot ${r}"></div><div><div class="add-name">${n}</div><div class="add-desc">${r==='add-red'?'Risque élevé':r==='add-yellow'?'Risque limité':'Sans risque connu'}</div></div></div>`;}).join(''):'<div style="font-size:12px;color:rgba(255,255,255,.4);padding:8px 0;">✅ Aucun additif détecté</div>';
-document.getElementById('result-card').innerHTML=`<div class="result-top"><div class="result-img-wrap">${img?`<img class="result-img" src="${img}" alt="">`:'<div class="result-img-placeholder">🛒</div>'}</div><div class="result-info"><div class="result-name">${name}</div><div class="result-brand">${brand}</div><div class="result-score-row"><div class="score-circle ${gradeClass}">${score}</div><div><div class="result-grade-label">Note</div><div class="result-grade-val" style="color:${gradeColor}">${gradeLabel}</div></div></div></div></div><div class="nutri-section"><div class="nutri-title">Nutri-Score</div><div class="nutri-bar">${['A','B','C','D','E'].map(l=>`<div class="nutri-letter nl-${l.toLowerCase()} ${nutri===l?'active':''}">${l}</div>`).join('')}</div><div class="nutrients-grid"><div class="nutrient-item"><div class="nutrient-name">Énergie</div><div class="nutrient-val">${energy}<span class="nutrient-unit">kcal</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill fill-green" style="width:${Math.min(100,energy/500*100)}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Protéines</div><div class="nutrient-val">${protein.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${pB.cls}" style="width:${pB.pct}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Graisses</div><div class="nutrient-val">${fat.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${fB.cls}" style="width:${fB.pct}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Graisses sat.</div><div class="nutrient-val">${satFat.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${sB.cls}" style="width:${sB.pct}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Sucres</div><div class="nutrient-val">${sugar.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${suB.cls}" style="width:${suB.pct}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Sel</div><div class="nutrient-val">${salt.toFixed(2)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${saB.cls}" style="width:${saB.pct}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Fibres</div><div class="nutrient-val">${fiber.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${fiB.cls}" style="width:${fiB.pct}%"></div></div></div></div></div><div class="additives-section"><div class="nutri-title">Additifs (${additives.length})</div><div class="additives-list">${addHtml}</div></div><div class="eco-section"><div class="nutri-title">Éco-Score</div><div class="eco-row"><div class="eco-badge eco-${eco}">${eco}</div><div class="eco-text">Impact environnemental ${eco==='A'?'très faible':eco==='B'?'faible':eco==='C'?'modéré':eco==='D'?'élevé':'très élevé'}.</div></div></div><div class="ingredients-section"><div class="nutri-title">Ingrédients</div><div class="ingredients-text">${ingredients.substring(0,300)}${ingredients.length>300?'...':''}</div></div>`;
-document.getElementById('scan-result').classList.add('show');
-scanHistory=scanHistory.filter(h=>h.name!==name);scanHistory.unshift({name,brand,img,score,gradeColor,gradeClass,product:p});if(scanHistory.length>5)scanHistory.pop();renderHistory();}
-function renderHistory(){const list=document.getElementById('history-list');if(scanHistory.length===0){list.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:20px;">Aucun produit analysé</div>';return;}list.innerHTML=scanHistory.map((h,i)=>`<div class="history-item" onclick="displayProduct(scanHistory[${i}].product)"><div class="history-img">${h.img?`<img src="${h.img}" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:10px;">`:'🛒'}</div><div class="history-info"><div class="history-name">${h.name}</div><div class="history-brand">${h.brand}</div></div><div class="history-score" style="color:${h.gradeColor}">${h.score}</div></div>`).join('');}
+
+async function searchProduct(){
+  const q=document.getElementById('search-input').value.trim();
+  if(!q)return;
+  showLoading();
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=1&fields=product_name,brands,image_url,nutriscore_grade,ecoscore_grade,nutriments,ingredients_text,additives_tags`);
+    const d=await r.json();
+    if(d.products&&d.products.length>0)displayProduct(d.products[0]);
+    else showError('Produit introuvable. Essayez un autre nom.');
+  }catch(e){showError('Erreur de connexion.');}
+}
+
+async function fetchByBarcode(barcode){
+  showLoading();
+  try{
+    const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const d=await r.json();
+    if(d.status===1)displayProduct(d.product);
+    else showError(`Produit (${barcode}) introuvable. Essayez la recherche.`);
+  }catch(e){showError('Erreur de connexion.');}
+}
+
+function displayProduct(p){
+  hideLoading();hideError();
+  const name=p.product_name||'Produit inconnu';
+  const brand=p.brands||'';
+  const img=p.image_url||'';
+  const nutri=(p.nutriscore_grade||'?').toUpperCase();
+  const eco=(p.ecoscore_grade||'?').toUpperCase();
+  const N=p.nutriments||{};
+  const ingr=p.ingredients_text||'Non renseigné';
+  const add=p.additives_tags||[];
+  let score=({A:100,B:75,C:50,D:25,E:0}[nutri])||50;
+  if(add.length>5)score-=20;else if(add.length>2)score-=10;else if(add.length===0)score+=5;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  let gc,gl,gcol;
+  if(score>=75){gc='score-A';gl='Excellent';gcol='var(--green)';}
+  else if(score>=50){gc='score-B';gl='Bon';gcol='#a3e635';}
+  else if(score>=30){gc='score-C';gl='Médiocre';gcol='#fbbf24';}
+  else if(score>=15){gc='score-D';gl='Mauvais';gcol='var(--orange)';}
+  else{gc='score-E';gl='Très mauvais';gcol='var(--red)';}
+  const fat=N['fat_100g']||0,sf=N['saturated-fat_100g']||0,sug=N['sugars_100g']||0,salt=N['salt_100g']||0,prot=N['proteins_100g']||0,fib=N['fiber_100g']||0,en=N['energy-kcal_100g']||0;
+  function bp(v,max,inv=true){const pt=Math.min(100,v/max*100);return{pt,cl:inv?(pt>70?'fill-red':pt>40?'fill-yellow':'fill-green'):'fill-green'};}
+  const fB=bp(fat,20),sB=bp(sf,10),suB=bp(sug,15),saB=bp(salt,1.5),pB=bp(prot,20,false),fiB=bp(fib,5,false);
+  const addH=add.length>0?add.slice(0,5).map(a=>{const n=a.replace('en:','').replace(/-/g,' ').toUpperCase();const r=a.includes('e1')||a.includes('e2')?'add-red':a.includes('e3')?'add-yellow':'add-green';return`<div class="additive-item"><div class="add-dot ${r}"></div><div><div class="add-name">${n}</div><div class="add-desc">${r==='add-red'?'Risque élevé':r==='add-yellow'?'Risque limité':'Sans risque'}</div></div></div>`;}).join(''):'<p style="font-size:12px;color:rgba(255,255,255,.4);padding:8px 0">✅ Aucun additif</p>';
+  document.getElementById('result-card').innerHTML=`
+    <div class="result-top"><div class="result-img-wrap">${img?`<img class="result-img" src="${img}">`:'<div class="result-img-placeholder">🛒</div>'}</div><div class="result-info"><div class="result-name">${name}</div><div class="result-brand">${brand}</div><div class="result-score-row"><div class="score-circle ${gc}">${score}</div><div><div class="result-grade-label">Note</div><div class="result-grade-val" style="color:${gcol}">${gl}</div></div></div></div></div>
+    <div class="nutri-section"><div class="nutri-title">Nutri-Score</div><div class="nutri-bar">${['A','B','C','D','E'].map(l=>`<div class="nutri-letter nl-${l.toLowerCase()} ${nutri===l?'active':''}">${l}</div>`).join('')}</div><div class="nutrients-grid"><div class="nutrient-item"><div class="nutrient-name">Énergie</div><div class="nutrient-val">${en}<span class="nutrient-unit">kcal</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill fill-green" style="width:${Math.min(100,en/500*100)}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Protéines</div><div class="nutrient-val">${prot.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${pB.cl}" style="width:${pB.pt}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Graisses</div><div class="nutrient-val">${fat.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${fB.cl}" style="width:${fB.pt}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Graisses sat.</div><div class="nutrient-val">${sf.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${sB.cl}" style="width:${sB.pt}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Sucres</div><div class="nutrient-val">${sug.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${suB.cl}" style="width:${suB.pt}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Sel</div><div class="nutrient-val">${salt.toFixed(2)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${saB.cl}" style="width:${saB.pt}%"></div></div></div><div class="nutrient-item"><div class="nutrient-name">Fibres</div><div class="nutrient-val">${fib.toFixed(1)}<span class="nutrient-unit">g</span></div><div class="nutrient-bar-wrap"><div class="nutrient-bar-fill ${fiB.cl}" style="width:${fiB.pt}%"></div></div></div></div></div>
+    <div class="additives-section"><div class="nutri-title">Additifs (${add.length})</div><div class="additives-list">${addH}</div></div>
+    <div class="eco-section"><div class="nutri-title">Éco-Score</div><div class="eco-row"><div class="eco-badge eco-${eco}">${eco}</div><div class="eco-text">Impact ${eco==='A'?'très faible':eco==='B'?'faible':eco==='C'?'modéré':eco==='D'?'élevé':'très élevé'} sur l'environnement.</div></div></div>
+    <div class="ingredients-section"><div class="nutri-title">Ingrédients</div><div class="ingredients-text">${ingr.substring(0,300)}${ingr.length>300?'...':''}</div></div>`;
+  document.getElementById('scan-result').classList.add('show');
+  document.getElementById('page-scan').scrollTo({top:document.getElementById('scan-result').offsetTop,behavior:'smooth'});
+  scanHistory=scanHistory.filter(h=>h.name!==name);
+  scanHistory.unshift({name,brand,img,score,gcol,gc,product:p});
+  if(scanHistory.length>5)scanHistory.pop();
+  renderHistory();
+}
+
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!scanHistory.length){el.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:20px;">Aucun produit scanné</div>';return;}
+  el.innerHTML=scanHistory.map((h,i)=>`<div class="history-item" onclick="displayProduct(scanHistory[${i}].product)"><div class="history-img">${h.img?`<img src="${h.img}" style="width:100%;height:100%;object-fit:contain;">`:'🛒'}</div><div class="history-info"><div class="history-name">${h.name}</div><div class="history-brand">${h.brand}</div></div><div class="history-score" style="color:${h.gcol}">${h.score}</div></div>`).join('');
+}
 function showLoading(){document.getElementById('scan-loading').classList.add('show');document.getElementById('scan-result').classList.remove('show');document.getElementById('scan-error').classList.remove('show');}
 function hideLoading(){document.getElementById('scan-loading').classList.remove('show');}
 function showError(msg){hideLoading();document.getElementById('scan-error-text').textContent=msg;document.getElementById('scan-error').classList.add('show');document.getElementById('scan-result').classList.remove('show');}
 function hideError(){document.getElementById('scan-error').classList.remove('show');}
+
 renderCards();renderHistory();
 </script>
 </body>
